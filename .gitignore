@@ -1,1 +1,7 @@
 *.o
+linux-*
+vmlinux.h
+*-log
+*.gz
+*.dsc
+EjemplosKernel
