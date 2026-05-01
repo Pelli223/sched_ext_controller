@@ -1,17 +1,17 @@
+#include "scx/common.bpf.h"
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
-#include <scx/common.bpf.h>
 
 // Define a shared Dispatch Queue (DSQ) ID
 #define SHARED_DSQ_ID 0
 
-#define BPF_STRUCT_OPS(name, args...)                                          \
-  SEC("struct_ops/" #name) BPF_PROG(name, ##args)
+/*#define BPF_STRUCT_OPS(name, args...) \ SEC("struct_ops/" #name)
+BPF_PROG(name, ##args)
 
 #define BPF_STRUCT_OPS_SLEEPABLE(name, args...)                                \
   SEC("struct_ops.s/" #name)                                                   \
-  BPF_PROG(name, ##args)
+  BPF_PROG(name, ##args)*/
 
 // Initialize the scheduler by creating a shared dispatch queue (DSQ)
 s32 BPF_STRUCT_OPS_SLEEPABLE(sched_init) {

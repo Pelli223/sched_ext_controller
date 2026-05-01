@@ -1,25 +1,28 @@
 #!/bin/bash
+# extract_scx_headers.sh - Ahora con versión específica
 
-# setup_scx_headers_fixed.sh - Fixed version for git sparse checkout
+# Define la versión de tu kernel (cambia si es distinta)
+KERNEL_VERSION="v6.17"
 
-set -e
+# Clonar solo la versión específica del kernel
+git clone --depth 1 \
+  --branch "$KERNEL_VERSION" \
+  --filter=blob:none \
+  --sparse \
+  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git \
+  kernel_src
 
-SCX_DIR="./scx"
-TEMP_DIR="./temp_scx_clone"
+cd kernel_src
+git sparse-checkout set tools/sched_ext/include
+cd ..
 
-# Clean up old directories
-rm -rf "$SCX_DIR" "$TEMP_DIR"
+# Crear directorio destino (lo llamamos 'scx' como antes)
+mkdir -p scx
 
-echo "Cloning repository (shallow clone)..."
-git clone --depth 1 https://github.com/sched-ext/scx.git "$TEMP_DIR"
+# Copiar los headers
+cp -r kernel_src/tools/sched_ext/include/scx/* scx/
 
-echo "Copying headers..."
-mkdir -p "$SCX_DIR"
-cp -r "$TEMP_DIR/scheds/include/scx/"* "$SCX_DIR/"
+# Limpiar
+rm -rf kernel_src
 
-# Clean up
-rm -rf "$TEMP_DIR"
-
-echo "✓ scx headers installed in $SCX_DIR/"
-echo "Contents:"
-ls -la "$SCX_DIR/"
+echo "Headers de $KERNEL_VERSION copiados a scx/"
