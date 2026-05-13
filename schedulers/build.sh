@@ -19,5 +19,4 @@ if [ ! -d "scx" ]; then
 fi
 
 # Compile the scheduler
-clang -target bpf -g -O2 -c $BPF_FILE -o ${BPF_FILE}.o -I.
-
+clang-19 -target bpf -mcpu=v3 -g -O2 -c $BPF_FILE -o ${BPF_FILE}.o -I.
