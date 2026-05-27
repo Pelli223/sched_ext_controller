@@ -1,4 +1,3 @@
-
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * A simple five-level FIFO queue scheduler.
@@ -23,10 +22,8 @@
  * Copyright (c) 2022 Tejun Heo <tj@kernel.org>
  * Copyright (c) 2022 David Vernet <dvernet@meta.com>
  */
-#include "scx/common.bpf.h"
 #include "vmlinux.h"
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_tracing.h>
+#include <scx/common.bpf.h>
 
 enum consts {
   ONE_SEC_IN_NS = 1000000000,
@@ -820,7 +817,7 @@ void BPF_STRUCT_OPS(qmap_exit, struct scx_exit_info *ei) {
   UEI_RECORD(uei, ei);
 }
 
-SCX_OPS_DEFINE(qmap_ops, .select_cpu = (void *)qmap_select_cpu,
+SCX_OPS_DEFINE(sched_ops, .select_cpu = (void *)qmap_select_cpu,
                .enqueue = (void *)qmap_enqueue, .dequeue = (void *)qmap_dequeue,
                .dispatch = (void *)qmap_dispatch, .tick = (void *)qmap_tick,
                .core_sched_before = (void *)qmap_core_sched_before,
