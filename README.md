@@ -36,32 +36,20 @@ grep -E 'CONFIG_SCHED_CLASS_EXT|CONFIG_BPF|CONFIG_DEBUG_INFO_BTF' /boot/config-$
  ```
  Si nos muestra **disabled** es que está activo pero ningún scheduler cargado, si nos muestra **enabled** disponemos de un scheduler cargado y si muestra **error** el scheduler falló.
 
+ También para poder compilar nuestros schedulers requerimos de clangd en concreto de la versió 19 para Ubuntu o Debian.
+ ``` bash
+ sudo apt install clangd-19 
+ ```
+
+ Debemos luego de esto instalar la librería para que Debian/Ubuntu encuentre las cabeceras de libbpf:
+ ``` bash
+ sudo apt install libbpf-dev
+ ```
+
+
  ## Como usar el repositorio y sus ejemplos
 
-Necesitamos de la versión de kernel de Linux 6.17. Esta viene incluida en distribuciones conocidas como Ubuntu 24.04, Linux Mint 22.3 o Debian 13.
-Apartir del kernel 6.13 de Linux, el soporte para sched_ext ya viene activo por defecto en el kernel. Para comprobar que este se encuentra activo para nuestro entorno podemos hacer lo siguiente:
-1. Comprobar que tenemos bpftool instalado:
-``` bash
-    which bpftool
-```
-Si no nos devuelve la ruta de instalación de bpftool, podemos instalarlo de la siguiente manera dependiendo de nuestra distro:
-- ArchLinux: ```bash sudo pacman -S bpftool ```
-- Fedora: ```bash sudo dnf install bpftool ```
-- Debian: ```bash sudo apt install linux-tools-common bpftool ```
-
-2. Para comprobar que tenemos el soporte por parte del kernel para el subsistema de sched_ext y de BPF disponible en nuestro equipo lo podemos comprobar con el siguiente comando:
-```bash
-grep -E 'CONFIG_SCHED_CLASS_EXT|CONFIG_BPF|CONFIG_DEBUG_INFO_BTF' /boot/config-$(uname -r)
- ```
- Debemos fijarnos en la salida y encontrar ```bash CONFIG_SCHED_CLASS_EXT=y ``` lo que nos indica que está habilidado sched_ext.
-
-3. Por último nos queda comprobar que esté activo el subsistema de sched_ext para terminar de confirmar que está todo listo para hacer uso de los distintos schedulers:
- ```bash
- cat /sys/kernel/sched_ext/state
- ```
- Si nos muestra **disabled** es que está activo pero ningún scheduler cargado, si nos muestra **enabled** disponemos de un scheduler cargado y si muestra **error** el scheduler falló.
-
- ## Pasos para lanzar para y observar nuestros schedulers
+ ### Pasos para lanzar para y observar nuestros schedulers
 
  - Para poder lanzar los scheduler debemos hacer uso del script start.sh ```bash sh start.sh {scheduler.c} ```
  - Para ver si tenemos algún scheduler registrado y cual, debemos de usar el script scheduler.sh ```bash sh scheduler.sh ```
