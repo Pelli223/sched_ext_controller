@@ -4,3 +4,4 @@ vmlinux.h
 *-log
 *.gz
 *.dsc
+../IdeasReunion.md

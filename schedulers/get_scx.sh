@@ -2,7 +2,7 @@
 # extract_scx_headers.sh - Ahora con versión específica
 
 # Define la versión de tu kernel (cambia si es distinta)
-KERNEL_VERSION="v6.17"
+KERNEL_VERSION="v6.18"
 
 # Clonar solo la versión específica del kernel
 git clone --depth 1 \
