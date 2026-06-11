@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DIR_REPO="$(dirname "$(readlink -f "$0")")"
+
+cd "$DIR_REPO"
+
 # --- VALIDACIÓN DE PRIVILEGIOS ---
 # Ya que interactúa con eBPF y bpftool, el binario DEBE ejecutarse como root.
 if [ "$(id -u)" -ne 0 ]; then
