@@ -133,7 +133,7 @@ case "$1" in
         ;;
     *)
         echo "Unified sched_ext Scheduler Manager (API Test)"
-        echo "Usage: scx-manager {setup|get-headers|build|start|stop|status} [arguments]"
+        echo "Usage: sched_controller {setup|get-headers|build|start|stop|status} [arguments]"
         echo ""
         echo "Commands:"
         echo "  setup         Generates the vmlinux.h file"
