@@ -1,5 +1,18 @@
 #!/bin/bash
 
+DIR_REPO="$(dirname "$(readlink -f "$0")")"
+
+cd "$DIR_REPO"
+
+# --- PRIVILEGE VALIDATION ---
+# Since it interacts with eBPF and bpftool, the binary MUST be executed as root.
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Error: This script requires root privileges."
+    echo "Run it with sudo or configure the SUID bit on the binary."
+    exit 1
+fi
+
+
 # Detectar home real incluso con sudo
 if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
     REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
