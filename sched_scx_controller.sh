@@ -50,16 +50,32 @@ fi
 
 stop_scheduler() {
     echo "Removing the current scx scheduler..."
-    local ACTIVE=$(cat /sys/kernel/sched_ext/*/ops 2>/dev/null | head -n1)
+    local ACTIVE=$(cat /sys/kernel/sched_ext/*/ops 2>/dev/null | head -n1 | tr -d '\n')
 
     if [ -z "$ACTIVE" ] || [ "$ACTIVE" = "ext" ]; then
         echo "There is no active scx scheduler at the moment."
         return 0
     fi
 
-    local PID=$(pgrep -xf "$SCX_REPO/target/release/scx_$ACTIVE" 2>/dev/null \
-             || pgrep -f "scx_$ACTIVE" 2>/dev/null \
-             || pgrep -f "$ACTIVE" 2>/dev/null)
+    # Extraer nombre base: rusty_1.1.2... → rusty
+    local BASE_NAME="${ACTIVE%%_*}"
+    local PID=""
+
+    # Intentar varias estrategias de búsqueda
+    if [ -n "$SCX_REPO" ]; then
+        # 1. Buscar ejecutable exacto en el repo
+        PID=$(pgrep -xf "$SCX_REPO/target/release/scx_$BASE_NAME" 2>/dev/null)
+    fi
+
+    if [ -z "$PID" ]; then
+        # 2. Buscar por nombre de proceso scx_<base>
+        PID=$(pgrep -f "scx_$BASE_NAME" 2>/dev/null)
+    fi
+
+    if [ -z "$PID" ]; then
+        # 3. Buscar por cualquier cosa que contenga el nombre base
+        PID=$(pgrep -f "$BASE_NAME" 2>/dev/null)
+    fi
 
     if [ -n "$PID" ]; then
         sudo kill "$PID"
