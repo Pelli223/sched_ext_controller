@@ -89,7 +89,7 @@ stop_scheduler() {
 
 start_scheduler() {
     local SCHEDULER="${1:-scx_rusty}"
-    shift 2>/dev/null || true
+    shift 2>/dev/null || true # Elimina el $1 (nombre del scheduler) para dejar solo los argumentos extras en $@
 
     local SCHEDULER_BIN="$SCX_REPO/target/release/$SCHEDULER"
     if [ ! -x "$SCHEDULER_BIN" ]; then
@@ -99,31 +99,50 @@ start_scheduler() {
 
     stop_scheduler
 
-    echo "Starting $SCHEDULER..."
+    if [ $# -gt 0 ]; then
+        echo "Starting $SCHEDULER with arguments: $*..."
+    else
+        echo "Starting $SCHEDULER..."
+    fi
+
+    # Lanza el binario pasándole TODOS los argumentos restantes ("$@")
     sudo "$SCHEDULER_BIN" "$@" &
     local PID=$!
 
-    sleep 1
+    # Polling: Esperar hasta 5 segundos a que se active el scheduler en eBPF
+    local TIMEOUT=5
+    local COUNT=0
+    local STATE=""
+    local ACTIVE=""
 
-    # Verificación robusta: el proceso sigue vivo Y sched_ext está activo
-    if ! kill -0 "$PID" 2>/dev/null; then
-        echo "Error: $SCHEDULER process died immediately."
-        exit 1
-    fi
+    while [ $COUNT -lt $TIMEOUT ]; do
+        sleep 1
+        
+        # Verificar si el proceso murió prematuramente
+        if ! kill -0 "$PID" 2>/dev/null; then
+            echo "Error: $SCHEDULER process died immediately."
+            exit 1
+        fi
 
-    local STATE=$(cat /sys/kernel/sched_ext/state 2>/dev/null)
-    local ACTIVE=$(cat /sys/kernel/sched_ext/*/ops 2>/dev/null | head -n1 | tr -d '\n')
+        STATE=$(cat /sys/kernel/sched_ext/state 2>/dev/null)
+        ACTIVE=$(cat /sys/kernel/sched_ext/*/ops 2>/dev/null | head -n1 | tr -d '\n')
 
-    if [ "$STATE" != "enabled" ] || [ -z "$ACTIVE" ] || [ "$ACTIVE" = "ext" ]; then
-        echo "Error: $SCHEDULER failed to activate."
-        echo "  sched_ext state: ${STATE:-<empty>}"
-        echo "  active ops: ${ACTIVE:-<empty>}"
-        sudo kill "$PID" 2>/dev/null
-        wait "$PID" 2>/dev/null
-        exit 1
-    fi
+        # Si el kernel confirmó la activación, salimos del bucle con éxito
+        if [ "$STATE" = "enabled" ] && [ -n "$ACTIVE" ] && [ "$ACTIVE" != "ext" ]; then
+            echo "Scheduler '$SCHEDULER' active (PID: $PID, ops: $ACTIVE)"
+            return 0
+        fi
 
-    echo "Scheduler '$SCHEDULER' active (PID: $PID, ops: $ACTIVE)"
+        COUNT=$((COUNT + 1))
+    done
+
+    # Si pasaron los 5 segundos sin activarse:
+    echo "Error: $SCHEDULER failed to activate after ${TIMEOUT}s."
+    echo "  sched_ext state: ${STATE:-<empty>}"
+    echo "  active ops: ${ACTIVE:-<empty>}"
+    sudo kill -SIGINT "$PID" 2>/dev/null
+    wait "$PID" 2>/dev/null
+    exit 1
 }
 
 status_scheduler() {
